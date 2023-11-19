@@ -2,6 +2,10 @@ import openai
 import telegram
 import asyncio
 import datetime
+import logging
+
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
 
 # Функция для разбиения текста книги на книги и главы
 def split_book_into_parts(book_text):
@@ -34,21 +38,27 @@ def generate_summary(text):
     last_message = response['choices'][0]['message']['content']
     return last_message.strip()
 
-# Основная функция с измененной логикой задержки для тестирования
 async def process_book_test(file_path, bot_token, channel_id):
-    with open(file_path, 'r', encoding='utf-8') as file:
-        book_text = file.read()
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            book_text = file.read()
 
-    chapters = split_book_into_parts(book_text)
+        chapters = split_book_into_parts(book_text)
 
-    for chapter_number, chapter_text in enumerate(chapters, start=1):
-        summary = generate_summary(f"Глава {chapter_number}\n{chapter_text}")
-        await send_message_to_telegram_channel(summary, bot_token, channel_id)
-        await asyncio.sleep(time_until_next_message_test())  # Задержка в 120 секунд для тестирования
+        for chapter_number, chapter_text in enumerate(chapters, start=1):
+            logging.info(f"Обработка главы {chapter_number}")
+            summary = generate_summary(f"Глава {chapter_number}\n{chapter_text}")
+            await send_message_to_telegram_channel(summary, bot_token, channel_id)
+            await asyncio.sleep(time_until_next_message_test())  # Задержка в 120 секунд для тестирования
+    except Exception as e:
+        logging.error(f"Произошла ошибка: {e}")
+
 
 # Пример использования для тестирования
 file_path = "book-bot.txt"
 bot_token = '6786746440:AAF2yGdkXhWdnPRzkYZDz1-gweckuTUp-ss'
 channel_id = '@rheniumbooks'
 
-await process_book_test(file_path, bot_token, channel_id)
+# Запуск основной функции
+if __name__ == "__main__":
+    asyncio.run(process_book_test(file_path, bot_token, channel_id))
