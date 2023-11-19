@@ -15,9 +15,13 @@ def split_book_into_parts(book_text):
         chapters.extend(part.split("Глава ")[1:])
     return chapters
 
-# Функция для определения времени до следующего запланированного сообщения (для тестирования)
-def time_until_next_message_test():
-    return 12000  # задержка в 120 секунд
+# Функция для определения времени до следующего запланированного сообщения
+def time_until_next_message(hour):
+    now = datetime.datetime.utcnow()
+    next_message_time = now.replace(hour=hour, minute=0, second=0, microsecond=0)
+    if now > next_message_time:
+        next_message_time += datetime.timedelta(days=1)
+    return (next_message_time - now).total_seconds()
 
 # Асинхронная функция для отправки сообщения в Telegram
 async def send_message_to_telegram_channel(text, bot_token, channel_id):
@@ -28,7 +32,7 @@ async def send_message_to_telegram_channel(text, bot_token, channel_id):
 def generate_summary(text):
     openai.api_key = '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'
     response = openai.ChatCompletion.create(
-        model="gpt-4-1106-preview",
+        model="gpt-4",
         messages=[
             {"role": "system", "content": "Вы публицист, экономист и историк, который читает книгу и пишет блог в повествовательном стиле. Ваша задача - проанализировать и пересказать в доступной манере, предоставленный текст из книги. Начиная текст, придумайте фразу вроде 'Анализируя прочитанное, я заметил ...' или 'Продолжая читать книгу, обнаружил интересные мысли...' и в этой фразе упоминайте главу, которую читаете - ее номер или название и упоминайте автора и название книги. Уложитесь в 250 слов."},
             {"role": "user", "content": text}
@@ -38,18 +42,20 @@ def generate_summary(text):
     last_message = response['choices'][0]['message']['content']
     return last_message.strip()
 
-async def process_book_test(file_path, bot_token, channel_id):
-    try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            book_text = file.read()
+# Основная функция
+async def process_book(file_path, bot_token, channel_id):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        book_text = file.read()
 
-        chapters = split_book_into_parts(book_text)
+    chapters = split_book_into_parts(book_text)
 
-        for chapter_number, chapter_text in enumerate(chapters, start=1):
-            logging.info(f"Обработка главы {chapter_number}")
-            summary = generate_summary(f"Глава {chapter_number}\n{chapter_text}")
-            await send_message_to_telegram_channel(summary, bot_token, channel_id)
-            await asyncio.sleep(time_until_next_message_test())  # Задержка в 120 секунд для тестирования
+    for chapter_number, chapter_text in enumerate(chapters, start=1):
+        summary = generate_summary(f"Глава {chapter_number}\n{chapter_text}")
+        await send_message_to_telegram_channel(summary, bot_token, channel_id)
+        if chapter_number % 2 == 0:
+            await asyncio.sleep(time_until_next_message(16))  # Отправка в 16:00 UTC
+        else:
+            await asyncio.sleep(time_until_next_message(9))   # Отправка в 09:00 UTC
     except Exception as e:
         logging.error(f"Произошла ошибка: {e}")
 
