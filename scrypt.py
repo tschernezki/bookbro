@@ -64,7 +64,7 @@ async def process_book(file_path, bot_token, channel_id):
         summary = generate_summary(trimmed_text)
         await send_message_to_telegram_channel(summary, bot_token, channel_id)
             if chapter_number % 2 == 0:
-                await asyncio.sleep(time_until_next_message(15, 10))
+                await asyncio.sleep(time_until_next_message(15, 25))
             else:
                 await asyncio.sleep(time_until_next_message(9))   
     except Exception as e:
