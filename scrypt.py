@@ -16,9 +16,9 @@ def split_book_into_parts(book_text):
     return chapters
 
 # Функция для определения времени до следующего запланированного сообщения
-def time_until_next_message(hour):
+def time_until_next_message(hour, minute):
     now = datetime.datetime.utcnow()
-    next_message_time = now.replace(hour=hour, minute=0, second=0, microsecond=0)
+    next_message_time = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
     if now > next_message_time:
         next_message_time += datetime.timedelta(days=1)
     return (next_message_time - now).total_seconds()
@@ -58,9 +58,9 @@ async def process_book(file_path, bot_token, channel_id):
             summary = generate_summary(f"Глава {chapter_number}\n{chapter_text}")
             await send_message_to_telegram_channel(summary, bot_token, channel_id)
             if chapter_number % 2 == 0:
-                await asyncio.sleep(time_until_next_message(16))  # Отправка в 16:00 UTC
+                await asyncio.sleep(time_until_next_message(15, 10))
             else:
-                await asyncio.sleep(time_until_next_message(9))   # Отправка в 09:00 UTC
+                await asyncio.sleep(time_until_next_message(9))   
     except Exception as e:
         logging.error(f"Произошла ошибка: {e}")
 
