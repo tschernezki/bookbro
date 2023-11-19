@@ -15,6 +15,13 @@ def split_book_into_parts(book_text):
         chapters.extend(part.split("Глава ")[1:])
     return chapters
 
+# Функция для ограничения длинны текста
+def trim_text_to_tokens(text, max_tokens=8000):
+    max_length = max_tokens * 4
+    if len(text) > max_length:
+        return text[:max_length]
+    return text
+
 # Функция для определения времени до следующего запланированного сообщения
 def time_until_next_message(hour, minute):
     now = datetime.datetime.utcnow()
@@ -47,16 +54,15 @@ def generate_summary(text):
 
 # Основная функция
 async def process_book(file_path, bot_token, channel_id):
-    try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            book_text = file.read()
+    with open(file_path, 'r', encoding='utf-8') as file:
+        book_text = file.read()
 
-        chapters = split_book_into_parts(book_text)
+    chapters = split_book_into_parts(book_text)
 
-        for chapter_number, chapter_text in enumerate(chapters, start=1):
-            logging.info(f"Обработка главы {chapter_number}")
-            summary = generate_summary(f"Глава {chapter_number}\n{chapter_text}")
-            await send_message_to_telegram_channel(summary, bot_token, channel_id)
+    for chapter_number, chapter_text in enumerate(chapters, start=1):
+        trimmed_text = trim_text_to_tokens(f"Глава {chapter_number}\n{chapter_text}")
+        summary = generate_summary(trimmed_text)
+        await send_message_to_telegram_channel(summary, bot_token, channel_id)
             if chapter_number % 2 == 0:
                 await asyncio.sleep(time_until_next_message(15, 10))
             else:
