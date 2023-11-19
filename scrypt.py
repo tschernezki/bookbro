@@ -59,7 +59,8 @@ def generate_summary(text):
     )
     last_message = response['choices'][0]['message']['content']
     return last_message.strip()
-
+    
+# Основная функция
 async def process_book(file_path, bot_token, channel_id):
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
@@ -72,10 +73,11 @@ async def process_book(file_path, bot_token, channel_id):
             trimmed_text = trim_text_to_tokens(f"Глава {chapter_number}\n{chapter_text}")
             summary = generate_summary(trimmed_text)
             await send_message_to_telegram_channel(summary, bot_token, channel_id)
+
             if chapter_number % 2 == 0:
-                await asyncio.sleep(time_until_next_message(15, 35))
+                await asyncio.sleep(time_until_next_message(15, 30))  # Отправка в 15:30 UTC
             else:
-                await asyncio.sleep(time_until_next_message(9))   
+                await asyncio.sleep(time_until_next_message(9, 0))    # Отправка в 9:00 UTC   
     except Exception as e:
         logging.error(f"Произошла ошибка: {e}")
 
