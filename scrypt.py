@@ -58,7 +58,7 @@ async def process_book(file_path, bot_token, channel_id):
             await asyncio.sleep(time_until_next_message(9))   # Отправка в 09:00 UTC
 
 # Пример использования
-file_path = "/Users/user/Desktop/book-bot.txt"
+file_path = "book-bot.txt"
 bot_token = '6786746440:AAF2yGdkXhWdnPRzkYZDz1-gweckuTUp-ss'
 channel_id = '@rheniumbooks'
 
