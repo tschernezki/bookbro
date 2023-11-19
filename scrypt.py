@@ -26,7 +26,7 @@ async def send_message_to_telegram_channel(text, bot_token, channel_id):
 
 # Функция для генерации краткого содержания
 def generate_summary(text):
-    openai.api_key = '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'
+    openai.api_key = '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'
     response = openai.ChatCompletion.create(
         model="gpt-4-1106-preview",
         messages=[
