@@ -1,0 +1,61 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2758
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 import openai\
+import telegram\
+import asyncio\
+import datetime\
+\
+# \uc0\u1060 \u1091 \u1085 \u1082 \u1094 \u1080 \u1103  \u1076 \u1083 \u1103  \u1088 \u1072 \u1079 \u1073 \u1080 \u1077 \u1085 \u1080 \u1103  \u1090 \u1077 \u1082 \u1089 \u1090 \u1072  \u1082 \u1085 \u1080 \u1075 \u1080  \u1085 \u1072  \u1082 \u1085 \u1080 \u1075 \u1080  \u1080  \u1075 \u1083 \u1072 \u1074 \u1099 \
+def split_book_into_parts(book_text):\
+    parts = book_text.split("\uc0\u1050 \u1085 \u1080 \u1075 \u1072  ")\
+    chapters = []\
+    for part in parts[1:]:\
+        chapters.extend(part.split("\uc0\u1043 \u1083 \u1072 \u1074 \u1072  ")[1:])\
+    return chapters\
+\
+# \uc0\u1060 \u1091 \u1085 \u1082 \u1094 \u1080 \u1103  \u1076 \u1083 \u1103  \u1086 \u1087 \u1088 \u1077 \u1076 \u1077 \u1083 \u1077 \u1085 \u1080 \u1103  \u1074 \u1088 \u1077 \u1084 \u1077 \u1085 \u1080  \u1076 \u1086  \u1089 \u1083 \u1077 \u1076 \u1091 \u1102 \u1097 \u1077 \u1075 \u1086  \u1079 \u1072 \u1087 \u1083 \u1072 \u1085 \u1080 \u1088 \u1086 \u1074 \u1072 \u1085 \u1085 \u1086 \u1075 \u1086  \u1089 \u1086 \u1086 \u1073 \u1097 \u1077 \u1085 \u1080 \u1103  (\u1076 \u1083 \u1103  \u1090 \u1077 \u1089 \u1090 \u1080 \u1088 \u1086 \u1074 \u1072 \u1085 \u1080 \u1103 )\
+def time_until_next_message_test():\
+    return 120  # \uc0\u1079 \u1072 \u1076 \u1077 \u1088 \u1078 \u1082 \u1072  \u1074  120 \u1089 \u1077 \u1082 \u1091 \u1085 \u1076 \
+\
+# \uc0\u1040 \u1089 \u1080 \u1085 \u1093 \u1088 \u1086 \u1085 \u1085 \u1072 \u1103  \u1092 \u1091 \u1085 \u1082 \u1094 \u1080 \u1103  \u1076 \u1083 \u1103  \u1086 \u1090 \u1087 \u1088 \u1072 \u1074 \u1082 \u1080  \u1089 \u1086 \u1086 \u1073 \u1097 \u1077 \u1085 \u1080 \u1103  \u1074  Telegram\
+async def send_message_to_telegram_channel(text, bot_token, channel_id):\
+    bot = telegram.Bot(token=bot_token)\
+    await bot.send_message(chat_id=channel_id, text=text)\
+\
+# \uc0\u1060 \u1091 \u1085 \u1082 \u1094 \u1080 \u1103  \u1076 \u1083 \u1103  \u1075 \u1077 \u1085 \u1077 \u1088 \u1072 \u1094 \u1080 \u1080  \u1082 \u1088 \u1072 \u1090 \u1082 \u1086 \u1075 \u1086  \u1089 \u1086 \u1076 \u1077 \u1088 \u1078 \u1072 \u1085 \u1080 \u1103 \
+def generate_summary(text):\
+    openai.api_key = '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'\
+    response = openai.ChatCompletion.create(\
+        model="gpt-4-1106-preview",\
+        messages=[\
+            \{"role": "system", "content": "\uc0\u1042 \u1099  \u1087 \u1091 \u1073 \u1083 \u1080 \u1094 \u1080 \u1089 \u1090 , \u1101 \u1082 \u1086 \u1085 \u1086 \u1084 \u1080 \u1089 \u1090  \u1080  \u1080 \u1089 \u1090 \u1086 \u1088 \u1080 \u1082 , \u1082 \u1086 \u1090 \u1086 \u1088 \u1099 \u1081  \u1095 \u1080 \u1090 \u1072 \u1077 \u1090  \u1082 \u1085 \u1080 \u1075 \u1091  \u1080  \u1087 \u1080 \u1096 \u1077 \u1090  \u1073 \u1083 \u1086 \u1075  \u1074  \u1087 \u1086 \u1074 \u1077 \u1089 \u1090 \u1074 \u1086 \u1074 \u1072 \u1090 \u1077 \u1083 \u1100 \u1085 \u1086 \u1084  \u1089 \u1090 \u1080 \u1083 \u1077 . \u1042 \u1072 \u1096 \u1072  \u1079 \u1072 \u1076 \u1072 \u1095 \u1072  - \u1087 \u1088 \u1086 \u1072 \u1085 \u1072 \u1083 \u1080 \u1079 \u1080 \u1088 \u1086 \u1074 \u1072 \u1090 \u1100  \u1080  \u1087 \u1077 \u1088 \u1077 \u1089 \u1082 \u1072 \u1079 \u1072 \u1090 \u1100  \u1074  \u1076 \u1086 \u1089 \u1090 \u1091 \u1087 \u1085 \u1086 \u1081  \u1084 \u1072 \u1085 \u1077 \u1088 \u1077 , \u1087 \u1088 \u1077 \u1076 \u1086 \u1089 \u1090 \u1072 \u1074 \u1083 \u1077 \u1085 \u1085 \u1099 \u1081  \u1090 \u1077 \u1082 \u1089 \u1090  \u1080 \u1079  \u1082 \u1085 \u1080 \u1075 \u1080 . \u1053 \u1072 \u1095 \u1080 \u1085 \u1072 \u1103  \u1090 \u1077 \u1082 \u1089 \u1090 , \u1087 \u1088 \u1080 \u1076 \u1091 \u1084 \u1072 \u1081 \u1090 \u1077  \u1092 \u1088 \u1072 \u1079 \u1091  \u1074 \u1088 \u1086 \u1076 \u1077  '\u1040 \u1085 \u1072 \u1083 \u1080 \u1079 \u1080 \u1088 \u1091 \u1103  \u1087 \u1088 \u1086 \u1095 \u1080 \u1090 \u1072 \u1085 \u1085 \u1086 \u1077 , \u1103  \u1079 \u1072 \u1084 \u1077 \u1090 \u1080 \u1083  ...' \u1080 \u1083 \u1080  '\u1055 \u1088 \u1086 \u1076 \u1086 \u1083 \u1078 \u1072 \u1103  \u1095 \u1080 \u1090 \u1072 \u1090 \u1100  \u1082 \u1085 \u1080 \u1075 \u1091 , \u1086 \u1073 \u1085 \u1072 \u1088 \u1091 \u1078 \u1080 \u1083  \u1080 \u1085 \u1090 \u1077 \u1088 \u1077 \u1089 \u1085 \u1099 \u1077  \u1084 \u1099 \u1089 \u1083 \u1080 ...' \u1080  \u1074  \u1101 \u1090 \u1086 \u1081  \u1092 \u1088 \u1072 \u1079 \u1077  \u1091 \u1087 \u1086 \u1084 \u1080 \u1085 \u1072 \u1081 \u1090 \u1077  \u1075 \u1083 \u1072 \u1074 \u1091 , \u1082 \u1086 \u1090 \u1086 \u1088 \u1091 \u1102  \u1095 \u1080 \u1090 \u1072 \u1077 \u1090 \u1077  - \u1077 \u1077  \u1085 \u1086 \u1084 \u1077 \u1088  \u1080 \u1083 \u1080  \u1085 \u1072 \u1079 \u1074 \u1072 \u1085 \u1080 \u1077  \u1080  \u1091 \u1087 \u1086 \u1084 \u1080 \u1085 \u1072 \u1081 \u1090 \u1077  \u1072 \u1074 \u1090 \u1086 \u1088 \u1072  \u1080  \u1085 \u1072 \u1079 \u1074 \u1072 \u1085 \u1080 \u1077  \u1082 \u1085 \u1080 \u1075 \u1080 . \u1059 \u1083 \u1086 \u1078 \u1080 \u1090 \u1077 \u1089 \u1100  \u1074  250 \u1089 \u1083 \u1086 \u1074 ."\},\
+            \{"role": "user", "content": text\}\
+        ],\
+        max_tokens=1000\
+    )\
+    last_message = response['choices'][0]['message']['content']\
+    return last_message.strip()\
+\
+# \uc0\u1054 \u1089 \u1085 \u1086 \u1074 \u1085 \u1072 \u1103  \u1092 \u1091 \u1085 \u1082 \u1094 \u1080 \u1103  \u1089  \u1080 \u1079 \u1084 \u1077 \u1085 \u1077 \u1085 \u1085 \u1086 \u1081  \u1083 \u1086 \u1075 \u1080 \u1082 \u1086 \u1081  \u1079 \u1072 \u1076 \u1077 \u1088 \u1078 \u1082 \u1080  \u1076 \u1083 \u1103  \u1090 \u1077 \u1089 \u1090 \u1080 \u1088 \u1086 \u1074 \u1072 \u1085 \u1080 \u1103 \
+async def process_book_test(file_path, bot_token, channel_id):\
+    with open(file_path, 'r', encoding='utf-8') as file:\
+        book_text = file.read()\
+\
+    chapters = split_book_into_parts(book_text)\
+\
+    for chapter_number, chapter_text in enumerate(chapters, start=1):\
+        summary = generate_summary(f"\uc0\u1043 \u1083 \u1072 \u1074 \u1072  \{chapter_number\}\\n\{chapter_text\}")\
+        await send_message_to_telegram_channel(summary, bot_token, channel_id)\
+        await asyncio.sleep(time_until_next_message_test())  # \uc0\u1047 \u1072 \u1076 \u1077 \u1088 \u1078 \u1082 \u1072  \u1074  120 \u1089 \u1077 \u1082 \u1091 \u1085 \u1076  \u1076 \u1083 \u1103  \u1090 \u1077 \u1089 \u1090 \u1080 \u1088 \u1086 \u1074 \u1072 \u1085 \u1080 \u1103 \
+\
+# \uc0\u1055 \u1088 \u1080 \u1084 \u1077 \u1088  \u1080 \u1089 \u1087 \u1086 \u1083 \u1100 \u1079 \u1086 \u1074 \u1072 \u1085 \u1080 \u1103  \u1076 \u1083 \u1103  \u1090 \u1077 \u1089 \u1090 \u1080 \u1088 \u1086 \u1074 \u1072 \u1085 \u1080 \u1103 \
+file_path = "/Users/user/Desktop/book-bot.txt"\
+bot_token = '6786746440:AAF2yGdkXhWdnPRzkYZDz1-gweckuTUp-ss'\
+channel_id = '@rheniumbooks'\
+\
+await process_book_test(file_path, bot_token, channel_id)}
