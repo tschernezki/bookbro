@@ -43,6 +43,7 @@ def generate_summary(text):
     return last_message.strip()
 
 # Основная функция
+# Основная функция
 async def process_book(file_path, bot_token, channel_id):
     with open(file_path, 'r', encoding='utf-8') as file:
         book_text = file.read()
@@ -56,8 +57,6 @@ async def process_book(file_path, bot_token, channel_id):
             await asyncio.sleep(time_until_next_message(16))  # Отправка в 16:00 UTC
         else:
             await asyncio.sleep(time_until_next_message(9))   # Отправка в 09:00 UTC
-    except Exception as e:
-        logging.error(f"Произошла ошибка: {e}")
 
 
 # Пример использования для тестирования
