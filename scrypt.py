@@ -17,7 +17,7 @@ def split_book_into_parts(book_text):
 
 # Функция для определения времени до следующего запланированного сообщения (для тестирования)
 def time_until_next_message_test():
-    return 120  # задержка в 120 секунд
+    return 12000  # задержка в 120 секунд
 
 # Асинхронная функция для отправки сообщения в Telegram
 async def send_message_to_telegram_channel(text, bot_token, channel_id):
