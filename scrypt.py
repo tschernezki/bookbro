@@ -53,7 +53,7 @@ async def process_book(file_path, bot_token, channel_id):
         summary = generate_summary(f"Глава {chapter_number}\n{chapter_text}")
         await send_message_to_telegram_channel(summary, bot_token, channel_id)
         if chapter_number % 2 == 0:
-            await asyncio.sleep(time_until_next_message(16))  # Отправка в 16:00 UTC
+            await asyncio.sleep(time_until_next_message(15))  # Отправка в 15:00 UTC
         else:
             await asyncio.sleep(time_until_next_message(9))   # Отправка в 09:00 UTC
 
