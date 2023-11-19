@@ -47,7 +47,7 @@ async def process_book_test(file_path, bot_token, channel_id):
         await asyncio.sleep(time_until_next_message_test())  # Задержка в 120 секунд для тестирования
 
 # Пример использования для тестирования
-file_path = "/Users/user/Desktop/book-bot.txt"
+file_path = "book-bot.txt"
 bot_token = '6786746440:AAF2yGdkXhWdnPRzkYZDz1-gweckuTUp-ss'
 channel_id = '@rheniumbooks'
 
