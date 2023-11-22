@@ -68,16 +68,23 @@ async def process_book(file_path, bot_token, channel_id):
 
         chapters = split_book_into_parts(book_text)
 
+        # Отправка сообщения о начале работы бота
+        start_message = "Бот для анализа книги и отправки пересказов запущен!"
+        await send_message_to_telegram_channel(start_message, bot_token, channel_id)
+
+        # Расписание отправки сообщений
+        schedule = [(9, 0), (15, 30)]  # (час, минута)
+        schedule_index = 0
+
         for chapter_number, chapter_text in enumerate(chapters, start=1):
-            # Обрезка текста до допустимого лимита токенов
             trimmed_text = trim_text_to_tokens(f"Глава {chapter_number}\n{chapter_text}")
             summary = generate_summary(trimmed_text)
             await send_message_to_telegram_channel(summary, bot_token, channel_id)
 
-            if chapter_number % 2 == 0:
-                await asyncio.sleep(time_until_next_message(15, 30))  # Отправка в 15:30 UTC
-            else:
-                await asyncio.sleep(time_until_next_message(9, 0))    # Отправка в 9:00 UTC   
+            # Ждать до следующего времени в расписании
+            await asyncio.sleep(time_until_next_message(*schedule[schedule_index]))
+            schedule_index = (schedule_index + 1) % len(schedule)
+
     except Exception as e:
         logging.error(f"Произошла ошибка: {e}")
 
