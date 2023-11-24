@@ -3,6 +3,7 @@ import telegram
 import asyncio
 import datetime
 import logging
+import concurrent.futures
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -92,15 +93,16 @@ async def process_book(file_path, bot_token, channel_id):
 async def process_user_messages(bot_token):
     bot = telegram.Bot(token=bot_token)
     update_id = None
+    executor = concurrent.futures.ThreadPoolExecutor()
 
     while True:
         try:
-            updates = bot.get_updates(offset=update_id, timeout=10)
+            updates = await asyncio.get_event_loop().run_in_executor(executor, bot.get_updates, update_id, 10)
             for update in updates:
                 if update.message:
                     update_id = update.update_id + 1
                     user_text = update.message.text
-                    summary = generate_summary(user_text)
+                    summary = await asyncio.get_event_loop().run_in_executor(executor, generate_summary, user_text)
                     chat_id = update.message.chat.id
                     await bot.send_message(chat_id=chat_id, text=summary)
         except Exception as e:
