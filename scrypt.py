@@ -6,6 +6,9 @@ import datetime
 import logging
 import concurrent.futures
 
+from telegram import Update
+from telegram.ext import Application, ContextTypes, MessageHandler, filters
+
 # Настройка логирования
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -93,10 +96,9 @@ async def process_book(file_path, bot_token, channel_id):
         
 # Асинхронная функция для обработки входящих сообщений от пользователя в Telegram
 async def process_user_messages_async(bot_token):
-    updater = telegram.ext.Updater(bot_token)
-    dispatcher = updater.dispatcher
+    application = Application.builder().token(bot_token).build()
 
-    async def handle_message(update, context):
+    async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
             user_text = update.message.text
             logging.info(f"Получено сообщение: {user_text}")
@@ -107,10 +109,10 @@ async def process_user_messages_async(bot_token):
         except Exception as e:
             logging.error(f"Ошибка при обработке сообщения пользователя: {e}")
 
-    dispatcher.add_handler(telegram.ext.MessageHandler(telegram.ext.Filters.text, handle_message))
-    await updater.start_polling()
-    await updater.idle()
+    application.add_handler(MessageHandler(filters.TEXT, handle_message))
 
+    await application.run_polling()
+    
 # Основная функция, запускающая обе задачи
 async def main(file_path, bot_token, channel_id):
     book_task = asyncio.create_task(process_book(file_path, bot_token, channel_id))
