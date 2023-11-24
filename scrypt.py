@@ -93,17 +93,17 @@ async def process_book(file_path, bot_token, channel_id):
         
 # Асинхронная функция для обработки входящих сообщений от пользователя в Telegram
 async def process_user_messages_async(bot_token):
-    updater = telegram.ext.Updater(bot_token, use_context=True)
+    updater = telegram.ext.Updater(bot_token)
     dispatcher = updater.dispatcher
 
     async def handle_message(update, context):
         try:
             user_text = update.message.text
-            logging.info(f"Получено сообщение: {user_text}")  # Логирование полученного сообщения
+            logging.info(f"Получено сообщение: {user_text}")
             summary = generate_summary(user_text)
-            logging.info("Сгенерирован ответ")  # Логирование после генерации ответа
+            logging.info("Сгенерирован ответ")
             await context.bot.send_message(chat_id=update.effective_chat.id, text=summary)
-            logging.info("Ответ отправлен пользователю")  # Логирование отправки ответа
+            logging.info("Ответ отправлен пользователю")
         except Exception as e:
             logging.error(f"Ошибка при обработке сообщения пользователя: {e}")
 
