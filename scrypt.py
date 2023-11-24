@@ -111,15 +111,19 @@ async def process_user_messages_async(bot_token):
 
     application.add_handler(MessageHandler(filters.TEXT, handle_message))
 
-    await application.run_polling()
+    # Мы не вызываем application.run_polling() здесь, так как это должно быть сделано в main
+    return application
     
 # Основная функция, запускающая обе задачи
 async def main(file_path, bot_token, channel_id):
     book_task = asyncio.create_task(process_book(file_path, bot_token, channel_id))
-    user_message_task = asyncio.create_task(process_user_messages_async(bot_token))
-
-    await asyncio.gather(book_task, user_message_task)
-
+    
+    # Инициализируем application без запуска run_polling
+    application = await process_user_messages_async(bot_token)
+    
+    # Запускаем все задачи, включая цикл обработки сообщений application
+    await asyncio.gather(book_task, application.run_polling())
+    
 # Пример использования
 file_path = "book-bot.txt"  # Используйте относительный путь
 bot_token = '6786746440:AAF2yGdkXhWdnPRzkYZDz1-gweckuTUp-ss'
