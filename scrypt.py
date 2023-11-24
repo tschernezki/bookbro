@@ -125,4 +125,9 @@ file_path = "book-bot.txt"  # Используйте относительный 
 bot_token = '6786746440:AAF2yGdkXhWdnPRzkYZDz1-gweckuTUp-ss'
 channel_id = '@rheniumbooks'
 
-asyncio.run(main(file_path, bot_token, channel_id))
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    try:
+        loop.run_until_complete(main(file_path, bot_token, channel_id))
+    finally:
+        loop.close()
