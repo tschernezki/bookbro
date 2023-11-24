@@ -95,8 +95,9 @@ async def process_book(file_path, bot_token, channel_id):
         logging.error(f"Произошла ошибка при обработке книги: {e}")
         
 # Асинхронная функция для обработки входящих сообщений от пользователя в Telegram
-async def process_user_messages_async(bot_token):
-    application = Application.builder().token(bot_token).build()
+async def process_user_messages_async(bot_token, update_queue):
+    # Инициализируем application и обработчики сообщений
+    application = Application.builder().token(bot_token).update_queue(update_queue).build()
 
     async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
@@ -111,18 +112,22 @@ async def process_user_messages_async(bot_token):
 
     application.add_handler(MessageHandler(filters.TEXT, handle_message))
 
-    # Мы не вызываем application.run_polling() здесь, так как это должно быть сделано в main
+    # Инициализируем обработчики без запуска цикла событий
+    await application.initialize()
     return application
+
     
 # Основная функция, запускающая обе задачи
 async def main(file_path, bot_token, channel_id):
+    # Создаём очередь обновлений для Application
+    update_queue = asyncio.Queue()
+    
+    # Инициализируем Application и запускаем обработку книги
+    application = await process_user_messages_async(bot_token, update_queue)
     book_task = asyncio.create_task(process_book(file_path, bot_token, channel_id))
     
-    # Инициализируем application без запуска run_polling
-    application = await process_user_messages_async(bot_token)
-    
-    # Запускаем все задачи, включая цикл обработки сообщений application
-    await asyncio.gather(book_task, application.run_polling())
+    # Запускаем все задачи
+    await asyncio.gather(book_task, application.idle())
     
 # Пример использования
 file_path = "book-bot.txt"  # Используйте относительный путь
@@ -130,8 +135,13 @@ bot_token = '6786746440:AAF2yGdkXhWdnPRzkYZDz1-gweckuTUp-ss'
 channel_id = '@rheniumbooks'
 
 if __name__ == '__main__':
+    # Используем существующий цикл событий или создаем новый, если его нет
     loop = asyncio.get_event_loop()
-    try:
-        loop.run_until_complete(main(file_path, bot_token, channel_id))
-    finally:
-        loop.close()
+    if loop.is_running():
+        # Сюда можно добавить код, если цикл уже запущен и его нельзя закрыть
+        pass
+    else:
+        try:
+            loop.run_until_complete(main(file_path, bot_token, channel_id))
+        finally:
+            loop.close()
