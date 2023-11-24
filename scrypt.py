@@ -87,11 +87,35 @@ async def process_book(file_path, bot_token, channel_id):
 
     except Exception as e:
         logging.error(f"Произошла ошибка: {e}")
+        
+# Асинхронная функция для обработки входящих сообщений от пользователя в Telegram
+async def process_user_messages(bot_token):
+    bot = telegram.Bot(token=bot_token)
+    update_id = None
 
+    while True:
+        try:
+            updates = bot.get_updates(offset=update_id, timeout=10)
+            for update in updates:
+                if update.message:
+                    update_id = update.update_id + 1
+                    user_text = update.message.text
+                    summary = generate_summary(user_text)
+                    chat_id = update.message.chat.id
+                    await bot.send_message(chat_id=chat_id, text=summary)
+        except Exception as e:
+            logging.error(f"Ошибка при обработке сообщения пользователя: {e}")
+
+# Основная функция, запускающая обе задачи
+async def main(file_path, bot_token, channel_id):
+    book_task = asyncio.create_task(process_book(file_path, bot_token, channel_id))
+    user_message_task = asyncio.create_task(process_user_messages(bot_token))
+
+    await asyncio.gather(book_task, user_message_task)
 
 # Пример использования
 file_path = "book-bot.txt"  # Используйте относительный путь
 bot_token = '6786746440:AAF2yGdkXhWdnPRzkYZDz1-gweckuTUp-ss'
 channel_id = '@rheniumbooks'
 
-asyncio.run(process_book(file_path, bot_token, channel_id))
+asyncio.run(main(file_path, bot_token, channel_id))
