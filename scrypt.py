@@ -89,29 +89,28 @@ async def process_book(file_path, bot_token, channel_id):
     except Exception as e:
         logging.error(f"Произошла ошибка: {e}")
         
-# Асинхронная функция для обработки входящих сообщений от пользователя в Telegram
-async def process_user_messages(bot_token):
+# Синхронная функция для обработки входящих сообщений от пользователя в Telegram
+def process_user_messages_sync(bot_token):
     bot = telegram.Bot(token=bot_token)
     update_id = None
-    executor = concurrent.futures.ThreadPoolExecutor()
 
     while True:
         try:
-            updates = await asyncio.get_event_loop().run_in_executor(executor, bot.get_updates, update_id, 10)
+            updates = bot.get_updates(offset=update_id, timeout=10)
             for update in updates:
                 if update.message:
                     update_id = update.update_id + 1
                     user_text = update.message.text
-                    summary = await asyncio.get_event_loop().run_in_executor(executor, generate_summary, user_text)
+                    summary = generate_summary(user_text)
                     chat_id = update.message.chat.id
-                    await bot.send_message(chat_id=chat_id, text=summary)
+                    bot.send_message(chat_id=chat_id, text=summary)
         except Exception as e:
             logging.error(f"Ошибка при обработке сообщения пользователя: {e}")
 
 # Основная функция, запускающая обе задачи
 async def main(file_path, bot_token, channel_id):
     book_task = asyncio.create_task(process_book(file_path, bot_token, channel_id))
-    user_message_task = asyncio.create_task(process_user_messages(bot_token))
+    user_message_task = asyncio.create_task(asyncio.to_thread(process_user_messages_sync, bot_token))
 
     await asyncio.gather(book_task, user_message_task)
 
