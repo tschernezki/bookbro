@@ -109,8 +109,9 @@ def process_user_messages_sync(bot_token):
 
 # Основная функция, запускающая обе задачи
 async def main(file_path, bot_token, channel_id):
+    loop = asyncio.get_event_loop()
     book_task = asyncio.create_task(process_book(file_path, bot_token, channel_id))
-    user_message_task = asyncio.create_task(asyncio.to_thread(process_user_messages_sync, bot_token))
+    user_message_task = loop.run_in_executor(None, process_user_messages_sync, bot_token)
 
     await asyncio.gather(book_task, user_message_task)
 
