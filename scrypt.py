@@ -5,9 +5,13 @@ import asyncio
 import datetime
 import logging
 import concurrent.futures
+import httpx
 
 from telegram import Update
 from telegram.ext import Application, ContextTypes, MessageHandler, filters
+
+# Configure a longer timeout duration
+timeout_config = httpx.Timeout(10.0)  # 10 seconds timeout
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -51,19 +55,41 @@ async def send_message_to_telegram_channel(text, bot_token, channel_id):
     except Exception as e:
         logging.error(f"Ошибка при отправке сообщения: {e}")
 
-# Функция для генерации краткого содержания
-def generate_summary(text):
+# Асинхронная функция для генерации краткого содержания
+async def generate_summary(text):
     openai.api_key = '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'
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[
+
+    headers = {
+        'Authorization': f'Bearer {openai.api_key}',
+        'Content-Type': 'application/json'
+    }
+    
+    payload = {
+        "model": "gpt-4",
+        "messages": [
             {"role": "system", "content": "Вы публицист, экономист, и убежденный либертарианец-капиталист, который читает книги и пишет блог в повествовательном стиле. Ваша задача - проанализировать и пересказать в доступной манере, предоставленный текст из книги, сравнивая описываемое в каждой главе, с экономическими и социальными реалиями 21 века. Начиная, придумайте фразу вроде 'Анализируя прочитанное, я заметил ...' или 'Читая книгу, обнаружил интересные мысли...' и во фразе упоминайте номер главы, которую прочли, ее название и упоминайте автора и название книги. Уложитесь в 300 слов. Пишите на украинском языке, в разговорном но не фамильярном стиле."},
             {"role": "user", "content": text}
         ],
-        max_tokens=1000
-    )
-    last_message = response['choices'][0]['message']['content']
-    return last_message.strip()
+        "max_tokens": 1000
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=timeout_config) as client:
+            response = await client.post(
+                'https://api.openai.com/v1/chat/completions', 
+                json=payload, 
+                headers=headers
+            )
+            response.raise_for_status()
+            return response.json()['choices'][0]['message']['content'].strip()
+    except httpx.HTTPStatusError as exc:
+        logging.error(f"HTTP error occurred: {exc}")
+    except httpx.RequestError as exc:
+        logging.error(f"An error occurred while requesting: {exc}")
+    except httpx.TimeoutException:
+        logging.error("The request timed out while contacting the OpenAI API.")
+
+    return None  # В случае ошибки возвращаем None или можете выбросить исключение
     
 # Основная функция
 async def process_book(file_path, bot_token, channel_id):
@@ -100,15 +126,15 @@ async def process_user_messages_async(bot_token, update_queue):
     application = Application.builder().token(bot_token).update_queue(update_queue).build()
 
     async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-        try:
-            user_text = update.message.text
-            logging.info(f"Получено сообщение: {user_text}")
-            summary = generate_summary(user_text)
-            logging.info("Сгенерирован ответ")
-            await context.bot.send_message(chat_id=update.effective_chat.id, text=summary)
-            logging.info("Ответ отправлен пользователю")
-        except Exception as e:
-            logging.error(f"Ошибка при обработке сообщения пользователя: {e}")
+    try:
+        user_text = update.message.text
+        logging.info(f"Получено сообщение: {user_text}")
+        summary = await generate_summary(user_text)  # Использование await для асинхронного вызова
+        logging.info("Сгенерирован ответ")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=summary)
+        logging.info("Ответ отправлен пользователю")
+    except Exception as e:
+        logging.error(f"Ошибка при обработке сообщения пользователя: {e}")
 
     application.add_handler(MessageHandler(filters.TEXT, handle_message))
 
@@ -135,13 +161,12 @@ bot_token = '6786746440:AAF2yGdkXhWdnPRzkYZDz1-gweckuTUp-ss'
 channel_id = '@rheniumbooks'
 
 if __name__ == '__main__':
-    # Используем существующий цикл событий или создаем новый, если его нет
     loop = asyncio.get_event_loop()
     if loop.is_running():
-        # Сюда можно добавить код, если цикл уже запущен и его нельзя закрыть
-        pass
+        asyncio.create_task(main(file_path, bot_token, channel_id))
     else:
         try:
             loop.run_until_complete(main(file_path, bot_token, channel_id))
         finally:
-            loop.close()
+            if loop.is_running():
+                loop.close()
