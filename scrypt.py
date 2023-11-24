@@ -126,15 +126,15 @@ async def process_user_messages_async(bot_token, update_queue):
     application = Application.builder().token(bot_token).update_queue(update_queue).build()
 
     async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    try:
-        user_text = update.message.text
-        logging.info(f"Получено сообщение: {user_text}")
-        summary = await generate_summary(user_text)  # Использование await для асинхронного вызова
-        logging.info("Сгенерирован ответ")
-        await context.bot.send_message(chat_id=update.effective_chat.id, text=summary)
-        logging.info("Ответ отправлен пользователю")
-    except Exception as e:
-        logging.error(f"Ошибка при обработке сообщения пользователя: {e}")
+        try:
+            user_text = update.message.text
+            logging.info(f"Получено сообщение: {user_text}")
+            summary = await generate_summary(user_text)  # Использование await для асинхронного вызова
+            logging.info("Сгенерирован ответ")
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=summary)
+            logging.info("Ответ отправлен пользователю")
+        except Exception as e:
+            logging.error(f"Ошибка при обработке сообщения пользователя: {e}")
 
     application.add_handler(MessageHandler(filters.TEXT, handle_message))
 
