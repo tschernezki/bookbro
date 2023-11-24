@@ -93,6 +93,7 @@ async def process_book(file_path, bot_token, channel_id):
 def process_user_messages_sync(bot_token):
     bot = telegram.Bot(token=bot_token)
     update_id = None
+    executor = concurrent.futures.ThreadPoolExecutor()
 
     while True:
         try:
@@ -101,9 +102,11 @@ def process_user_messages_sync(bot_token):
                 if update.message:
                     update_id = update.update_id + 1
                     user_text = update.message.text
-                    summary = generate_summary(user_text)
+                    loop = asyncio.get_event_loop()
+                    summary = loop.run_in_executor(executor, generate_summary, user_text)
+                    summary_result = summary.result()  # Получаем результат без await
                     chat_id = update.message.chat.id
-                    bot.send_message(chat_id=chat_id, text=summary)
+                    bot.send_message(chat_id=chat_id, text=summary_result)  # Используем полученный результат
         except Exception as e:
             logging.error(f"Ошибка при обработке сообщения пользователя: {e}")
 
