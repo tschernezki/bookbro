@@ -1,12 +1,13 @@
 import openai
 import telegram
+import telegram.ext
 import asyncio
 import datetime
 import logging
 import concurrent.futures
 
 # Настройка логирования
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Функция для разбиения текста книги на книги и главы
 def split_book_into_parts(book_text):
@@ -72,46 +73,48 @@ async def process_book(file_path, bot_token, channel_id):
         # Отправка сообщения о начале работы бота
         start_message = "Бот для анализа книги и отправки пересказов запущен!"
         await send_message_to_telegram_channel(start_message, bot_token, channel_id)
+        logging.info("Отправлено начальное сообщение в канал")  # Логирование отправки начального сообщения
 
         # Расписание отправки сообщений
-        schedule = [(9, 0), (15, 30), (17, 00)]  # (час, минута)
+        schedule = [(9, 0), (15, 30), (17, 00)]
         schedule_index = 0
 
         for chapter_number, chapter_text in enumerate(chapters, start=1):
             trimmed_text = trim_text_to_tokens(f"Глава {chapter_number}\n{chapter_text}")
             summary = generate_summary(trimmed_text)
             await send_message_to_telegram_channel(summary, bot_token, channel_id)
+            logging.info(f"Отправлена глава {chapter_number}")  # Логирование отправки каждой главы
 
-            # Ждать до следующего времени в расписании
             await asyncio.sleep(time_until_next_message(*schedule[schedule_index]))
             schedule_index = (schedule_index + 1) % len(schedule)
 
     except Exception as e:
-        logging.error(f"Произошла ошибка: {e}")
+        logging.error(f"Произошла ошибка при обработке книги: {e}")
         
-# Синхронная функция для обработки входящих сообщений от пользователя в Telegram
-def process_user_messages_sync(bot_token):
-    bot = telegram.Bot(token=bot_token)
-    update_id = None
+# Асинхронная функция для обработки входящих сообщений от пользователя в Telegram
+async def process_user_messages_async(bot_token):
+    updater = telegram.ext.Updater(bot_token, use_context=True)
+    dispatcher = updater.dispatcher
 
-    while True:
+    async def handle_message(update, context):
         try:
-            updates = bot.get_updates(offset=update_id, timeout=10)
-            for update in updates:
-                if update.message:
-                    update_id = update.update_id + 1
-                    user_text = update.message.text
-                    summary = generate_summary(user_text)  # Синхронный вызов
-                    chat_id = update.message.chat.id
-                    bot.send_message(chat_id=chat_id, text=summary)  # Синхронный вызов
+            user_text = update.message.text
+            logging.info(f"Получено сообщение: {user_text}")  # Логирование полученного сообщения
+            summary = generate_summary(user_text)
+            logging.info("Сгенерирован ответ")  # Логирование после генерации ответа
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=summary)
+            logging.info("Ответ отправлен пользователю")  # Логирование отправки ответа
         except Exception as e:
             logging.error(f"Ошибка при обработке сообщения пользователя: {e}")
 
+    dispatcher.add_handler(telegram.ext.MessageHandler(telegram.ext.Filters.text, handle_message))
+    await updater.start_polling()
+    await updater.idle()
+
 # Основная функция, запускающая обе задачи
 async def main(file_path, bot_token, channel_id):
-    loop = asyncio.get_event_loop()
     book_task = asyncio.create_task(process_book(file_path, bot_token, channel_id))
-    user_message_task = loop.run_in_executor(None, process_user_messages_sync, bot_token)
+    user_message_task = asyncio.create_task(process_user_messages_async(bot_token))
 
     await asyncio.gather(book_task, user_message_task)
 
