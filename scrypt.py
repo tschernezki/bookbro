@@ -73,7 +73,7 @@ async def process_book(file_path, bot_token, channel_id):
         await send_message_to_telegram_channel(start_message, bot_token, channel_id)
 
         # Расписание отправки сообщений
-        schedule = [(9, 0), (15, 30), (17, 00)]  # (час, минута)
+        schedule = [(15, 30), (17, 00)]  # (час, минута)
         schedule_index = 0
 
         for chapter_number, chapter_text in enumerate(chapters, start=1):
