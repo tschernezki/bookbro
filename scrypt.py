@@ -1,4 +1,3 @@
-User
 import openai
 import telegram
 import asyncio
