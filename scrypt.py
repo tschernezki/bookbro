@@ -61,27 +61,39 @@ def generate_summary(text):
     return last_message.strip()
     
 # Основная функция
-async def process_book(file_path, bot_token, channel_id):
+async def process_books(file_path1, file_path2, bot_token, channel_id):
     try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            book_text = file.read()
+        # Чтение и разбиение первой книги
+        with open(file_path1, 'r', encoding='utf-8') as file:
+            book_text1 = file.read()
+        chapters1 = split_book_into_parts(book_text1)
 
-        chapters = split_book_into_parts(book_text)
+        # Чтение и разбиение второй книги
+        with open(file_path2, 'r', encoding='utf-8') as file:
+            book_text2 = file.read()
+        chapters2 = split_book_into_parts(book_text2)
 
-        # Отправка сообщения о начале работы бота
-        start_message = "Бот для анализа книги и отправки пересказов запущен!"
+        # Отправка начального сообщения
+        start_message = "Бот для анализа книг и отправки пересказов запущен!"
         await send_message_to_telegram_channel(start_message, bot_token, channel_id)
 
         # Расписание отправки сообщений
         schedule = [(9, 00), (15, 30), (17, 00)]  # (час, минута)
         schedule_index = 0
 
-        for chapter_number, chapter_text in enumerate(chapters, start=1):
-            trimmed_text = trim_text_to_tokens(f"Глава {chapter_number}\n{chapter_text}")
-            summary = generate_summary(trimmed_text)
-            await send_message_to_telegram_channel(summary, bot_token, channel_id)
+        # Чередование между книгами
+        for (chapter_number1, chapter_text1), (chapter_number2, chapter_text2) in zip(enumerate(chapters1, start=1), enumerate(chapters2, start=1)):
+            # Обработка главы из первой книги
+            trimmed_text1 = trim_text_to_tokens(f"Глава {chapter_number1}\n{chapter_text1}")
+            summary1 = generate_summary(trimmed_text1)
+            await send_message_to_telegram_channel(summary1, bot_token, channel_id)
+            await asyncio.sleep(time_until_next_message(*schedule[schedule_index]))
+            schedule_index = (schedule_index + 1) % len(schedule)
 
-            # Ждать до следующего времени в расписании
+            # Обработка главы из второй книги
+            trimmed_text2 = trim_text_to_tokens(f"Глава {chapter_number2}\n{chapter_text2}")
+            summary2 = generate_summary(trimmed_text2)
+            await send_message_to_telegram_channel(summary2, bot_token, channel_id)
             await asyncio.sleep(time_until_next_message(*schedule[schedule_index]))
             schedule_index = (schedule_index + 1) % len(schedule)
 
@@ -90,8 +102,9 @@ async def process_book(file_path, bot_token, channel_id):
 
 
 # Пример использования
-file_path = "book-bot.txt"  # Используйте относительный путь
+file_path1 = "book-bot.txt"
+file_path2 = "book2.txt"
 bot_token = '6786746440:AAF2yGdkXhWdnPRzkYZDz1-gweckuTUp-ss'
 channel_id = '@rheniumbooks'
 
-asyncio.run(process_book(file_path, bot_token, channel_id))
+asyncio.run(process_books(file_path1, file_path2, bot_token, channel_id))
