@@ -3,17 +3,17 @@ import telegram
 import asyncio
 import datetime
 import logging
+import re
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 
 # Функция для разбиения текста книги на книги и главы
 def split_book_into_parts(book_text):
-    parts = book_text.split("Книга ")
-    chapters = []
-    for part in parts[1:]:
-        chapters.extend(part.split("Глава ")[1:])
-    return chapters
+    # Используем регулярное выражение для поиска глав
+    chapter_pattern = re.compile(r'Глава\s+([0-9]+|[IVXLCDM]+)\s*', re.IGNORECASE)
+    chapters = chapter_pattern.split(book_text)[1:]
+    return [chapters[i] + chapters[i+1] for i in range(0, len(chapters), 2)]
 
 # Функция для ограничения длинны текста
 def trim_text_to_tokens(text, max_tokens=8000):
