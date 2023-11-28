@@ -40,6 +40,10 @@ def time_until_next_message(hour, minute):
 
 # Асинхронная функция для отправки сообщения в Telegram
 async def send_message_to_telegram_channel(text, bot_token, channel_id):
+    if not text.strip():
+        logging.warning("Текст сообщения пуст. Сообщение не будет отправлено.")
+        return
+
     try:
         bot = telegram.Bot(token=bot_token)
         await bot.send_message(chat_id=channel_id, text=text)
