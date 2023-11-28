@@ -102,7 +102,7 @@ async def process_books(file_path1, file_path2, bot_token, channel_id):
 
 
 # Пример использования
-file_path1 = "book2.txt"
+file_path1 = "745514.txt"
 file_path2 = "book-bot.txt"
 bot_token = '6786746440:AAF2yGdkXhWdnPRzkYZDz1-gweckuTUp-ss'
 channel_id = '@rheniumbooks'
