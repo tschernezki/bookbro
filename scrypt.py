@@ -8,6 +8,17 @@ import re
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 
+def save_last_processed_chapter(file_path, last_chapter):
+    with open(file_path, 'w') as file:
+        file.write(str(last_chapter))
+
+def load_last_processed_chapter(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            return int(file.read().strip())
+    except FileNotFoundError:
+        return 0  # Начинаем с начала, если файл не найден
+
 # Функция для разбиения текста книги на книги и главы
 def split_book_into_parts(book_text):
     # Используем регулярное выражение для поиска глав
@@ -63,6 +74,10 @@ def generate_summary(text):
 # Основная функция
 async def process_books(file_path1, file_path2, bot_token, channel_id):
     try:
+        # Загрузка последней обработанной главы для каждой книги
+        last_processed_chapter1 = load_last_processed_chapter("last_processed_chapter1.txt")
+        last_processed_chapter2 = load_last_processed_chapter("last_processed_chapter2.txt")
+        
         # Чтение и разбиение первой книги
         with open(file_path1, 'r', encoding='utf-8') as file:
             book_text1 = file.read()
@@ -83,19 +98,23 @@ async def process_books(file_path1, file_path2, bot_token, channel_id):
 
         # Чередование между книгами
         for (chapter_number1, chapter_text1), (chapter_number2, chapter_text2) in zip(enumerate(chapters1, start=1), enumerate(chapters2, start=1)):
-            # Обработка главы из первой книги
-            trimmed_text1 = trim_text_to_tokens(f"Глава {chapter_number1}\n{chapter_text1}")
-            summary1 = generate_summary(trimmed_text1)
-            await send_message_to_telegram_channel(summary1, bot_token, channel_id)
-            await asyncio.sleep(time_until_next_message(*schedule[schedule_index]))
-            schedule_index = (schedule_index + 1) % len(schedule)
+            if chapter_number1 > last_processed_chapter1:
+                # Обработка главы из первой книги
+                trimmed_text1 = trim_text_to_tokens(f"Глава {chapter_number1}\n{chapter_text1}")
+                summary1 = generate_summary(trimmed_text1)
+                await send_message_to_telegram_channel(summary1, bot_token, channel_id)
+                await asyncio.sleep(time_until_next_message(*schedule[schedule_index]))
+                schedule_index = (schedule_index + 1) % len(schedule)
+                save_last_processed_chapter("last_processed_chapter1.txt", chapter_number1)
 
-            # Обработка главы из второй книги
-            trimmed_text2 = trim_text_to_tokens(f"Глава {chapter_number2}\n{chapter_text2}")
-            summary2 = generate_summary(trimmed_text2)
-            await send_message_to_telegram_channel(summary2, bot_token, channel_id)
-            await asyncio.sleep(time_until_next_message(*schedule[schedule_index]))
-            schedule_index = (schedule_index + 1) % len(schedule)
+            if chapter_number2 > last_processed_chapter2:
+                # Обработка главы из второй книги
+                trimmed_text2 = trim_text_to_tokens(f"Глава {chapter_number2}\n{chapter_text2}")
+                summary2 = generate_summary(trimmed_text2)
+                await send_message_to_telegram_channel(summary2, bot_token, channel_id)
+                await asyncio.sleep(time_until_next_message(*schedule[schedule_index]))
+                schedule_index = (schedule_index + 1) % len(schedule)
+                save_last_processed_chapter("last_processed_chapter2.txt", chapter_number2)
 
     except Exception as e:
         logging.error(f"Произошла ошибка: {e}")
