@@ -15,9 +15,15 @@ def save_last_processed_chapter(file_path, last_chapter):
 def load_last_processed_chapter(file_path):
     try:
         with open(file_path, 'r') as file:
-            return int(file.read().strip())
-    except FileNotFoundError:
-        return 0  # Начинаем с начала, если файл не найден
+            content = file.read().strip()
+            # Проверяем, не пустой ли файл
+            if content:
+                return int(content)
+            else:
+                return 0
+    except (FileNotFoundError, ValueError):
+        # Возвращаем 0, если файл не найден или содержит некорректные данные
+        return 0
 
 # Функция для разбиения текста книги на книги и главы
 def split_book_into_parts(book_text):
