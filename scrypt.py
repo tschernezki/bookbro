@@ -99,7 +99,7 @@ async def process_books(file_path1, file_path2, bot_token, channel_id):
         await send_message_to_telegram_channel(start_message, bot_token, channel_id)
 
         # Расписание отправки сообщений
-        schedule = [(9, 00), (11,00), (15, 30), (17, 00)]  # (час, минута)
+        schedule = [(11,00), (17, 00), (19,00)]  # (час, минута)
         schedule_index = 0
 
         # Чередование между книгами
