@@ -1,5 +1,5 @@
 
-1
+Глава 1
 
 Introduction
 
@@ -117,7 +117,7 @@ becoming more and more important in the politics and economies of the world.
 DAO science is one of the most promising paths forward for tackling and making
 progress on hard questions of organization, coordination, and governance.
 
-2
+Глава 2
 
 Computer science
 Editor: Joshua Tan. Contributors: Joshua Tan, Michael Zargham,
@@ -649,7 +649,7 @@ experimentation as well as data collection and synthesis.
 
 19
 
-3
+Глава 3
 
 Economics
 Editors: Jason Potts, Chris Berg, Sarah Hubbard. Contributors:
@@ -1089,7 +1089,7 @@ but, at present, their effectiveness and desirability is unclear. We are only in
 the early stages of gaining understanding on that front. That makes studying
 the methods both theoretically and observationally all the more important.
 
-4
+Глава 4
 
 Ethics
 Editor: Reuben Youngblom. Contributors: Reuben Youngblom,
@@ -1261,7 +1261,7 @@ Potential framework components:
 • Prosocial purpose
 • Respect for autonomy
 
-5
+Глава 5
 
 Law
 Editors: Joni Pirovich, Primavera De Filippi. Contributors: Joni
@@ -1468,7 +1468,7 @@ from legacy legal systems.
 
 39
 
-6
+Глава 6
 
 Organizational science
 Editors: Rolf Hoefer, Ellie Rennie. Contributors: Rolf Hoefer,
@@ -1810,7 +1810,7 @@ their mediating capabilities, and by developing new participatory methods to
 involve DAO practitioners in the research process. Ethnography is therefore a
 promising approach for identifying emergent ‘open problems’ in DAO science.
 
-7
+Глава 7
 
 Political science and philosophy
 Editor: Eliza R. Oak. Contributors: Eliza R. Oak, Woojin Lim,
