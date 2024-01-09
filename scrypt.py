@@ -57,6 +57,9 @@ def time_until_next_message(hour, minute):
 
 # Асинхронная функция для отправки сообщения в Telegram
 async def send_message_to_telegram_channel(text, bot_token, channel_id):
+    if not text:
+        logging.warning("Попытка отправить пустое сообщение в Telegram")
+        return
     try:
         bot = telegram.Bot(token=bot_token)
         await bot.send_message(chat_id=channel_id, text=text)
@@ -75,7 +78,11 @@ def generate_summary(text):
         max_tokens=2000
     )
     last_message = response['choices'][0]['message']['content']
-    return last_message.strip()
+        logging.info(f"Сгенерированное краткое содержание: {last_message[:50]}...")  # Логируем начало сообщения
+        return last_message.strip()
+    except Exception as e:
+        logging.error(f"Ошибка при генерации краткого содержания: {e}")
+        return None  # Возвращаем None в случае ошибки
     
 # Основная функция
 async def process_books(file_path1, file_path2, bot_token, channel_id):
@@ -108,7 +115,10 @@ async def process_books(file_path1, file_path2, bot_token, channel_id):
                 # Обработка главы из первой книги
                 trimmed_text1 = trim_text_to_tokens(f"Глава {chapter_number1}\n{chapter_text1}")
                 summary1 = generate_summary(trimmed_text1)
-                await send_message_to_telegram_channel(summary1, bot_token, channel_id)
+                if summary1:
+                    await send_message_to_telegram_channel(summary1, bot_token, channel_id)
+                else:
+                    logging.warning(f"Получен пустой текст для главы {chapter_number1} из первой книги")
                 await asyncio.sleep(time_until_next_message(*schedule[schedule_index]))
                 schedule_index = (schedule_index + 1) % len(schedule)
                 save_last_processed_chapter("last_processed_chapter1.txt", chapter_number1)
@@ -117,7 +127,10 @@ async def process_books(file_path1, file_path2, bot_token, channel_id):
                 # Обработка главы из второй книги
                 trimmed_text2 = trim_text_to_tokens(f"Глава {chapter_number2}\n{chapter_text2}")
                 summary2 = generate_summary(trimmed_text2)
-                await send_message_to_telegram_channel(summary2, bot_token, channel_id)
+                if summary2:
+                    await send_message_to_telegram_channel(summary2, bot_token, channel_id)
+                else:
+                    logging.warning(f"Получен пустой текст для главы {chapter_number2} из второй книги")
                 await asyncio.sleep(time_until_next_message(*schedule[schedule_index]))
                 schedule_index = (schedule_index + 1) % len(schedule)
                 save_last_processed_chapter("last_processed_chapter2.txt", chapter_number2)
