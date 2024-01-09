@@ -68,21 +68,23 @@ async def send_message_to_telegram_channel(text, bot_token, channel_id):
 
 # Функция для генерации краткого содержания
 def generate_summary(text):
-    openai.api_key = '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'
-    response = openai.ChatCompletion.create(
-        model="gpt-4-1106-preview",
-        messages=[
-            {"role": "system", "content": "Вы публицист, экономист, правый либертарианец, капиталист, который читает книги и пишет блог в повествовательном стиле. Ваша задача - проанализировать и пересказать в доступной манере, предоставленный текст из книг по экономике. Начиная, в первой фразе упоминайте номер главы (номер всегда после слова ГЛАВА), ее название и упоминайте автора и название книги - они указаны в самом начале файла (Автор:, Книга:). Уложитесь в 300 слов. Пишите грамотно на украинском языке, в сдержанном публицистическом стиле, не используйте сложных словесных конструкций."},
-            {"role": "user", "content": text}
-        ],
-        max_tokens=2000
-    )
-    last_message = response['choices'][0]['message']['content']
+    try:
+        openai.api_key = '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'
+        response = openai.ChatCompletion.create(
+            model="gpt-4-1106-preview",
+            messages=[
+                {"role": "system", "content": "Вы публицист, экономист, правый либертарианец, капиталист, который читает книги и пишет блог в повествовательном стиле. Ваша задача - проанализировать и пересказать в доступной манере, предоставленный текст из книг по экономике. Начиная, в первой фразе упоминайте номер главы (номер всегда после слова ГЛАВА), ее название и упоминайте автора и название книги - они указаны в самом начале файла (Автор:, Книга:). Уложитесь в 300 слов. Пишите грамотно на украинском языке, в сдержанном публицистическом стиле, не используйте сложных словесных конструкций."},
+                {"role": "user", "content": text}
+            ],
+            max_tokens=2000
+        )
+        last_message = response['choices'][0]['message']['content']
         logging.info(f"Сгенерированное краткое содержание: {last_message[:50]}...")  # Логируем начало сообщения
         return last_message.strip()
     except Exception as e:
         logging.error(f"Ошибка при генерации краткого содержания: {e}")
         return None  # Возвращаем None в случае ошибки
+
     
 # Основная функция
 async def process_books(file_path1, file_path2, bot_token, channel_id):
