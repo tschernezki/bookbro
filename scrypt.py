@@ -4,6 +4,14 @@ import asyncio
 import datetime
 import logging
 import re
+import fitz  
+
+def extract_text_from_pdf(pdf_path):
+    doc = fitz.open(pdf_path)
+    text = ""
+    for page in doc:
+        text += page.get_text("text") + "\n"
+    return text
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -73,7 +81,7 @@ def generate_summary(text):
         response = openai.ChatCompletion.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "Вы публицист, экономист, правый либертарианец, капиталист, который читает книги и пишет блог в повествовательном стиле. Ваша задача - проанализировать и пересказать в доступной манере, предоставленный текст из книг по экономике. Начиная, в первой фразе упоминайте номер главы (номер всегда после слова ГЛАВА), ее название и упоминайте автора и название книги - они указаны в самом начале файла (Автор:, Книга:). Уложитесь в 300 слов. Пишите грамотно на украинском языке, в сдержанном публицистическом стиле, не используйте сложных словесных конструкций."},
+                {"role": "system", "content": "Ты — профессиональный инвестиционный аналитик и финансовый консультант. Твоя задача — обучать владельца инвестиционного фонда ключевым знаниям из книги. Анализируй каждую главу через призму asset management, определяй ключевые идеи и стратегии, приводи примеры их применения, формулируй практические выводы, которые можно внедрить в инвестиционную стратегию. Объясняй простыми словами, избегая сложного жаргона. Отвечай в формате: краткое изложение главы, основные идеи, практические выводы, рекомендации для владельца фонда. Пиши текст в формате образовательного эссе, как будто проводишь персональную консультацию."}
                 {"role": "user", "content": text}
             ],
             max_tokens=2000
@@ -93,14 +101,20 @@ async def process_books(file_path1, file_path2, bot_token, channel_id):
         last_processed_chapter1 = load_last_processed_chapter("last_processed_chapter1.txt")
         last_processed_chapter2 = load_last_processed_chapter("last_processed_chapter2.txt")
         
-        # Чтение и разбиение первой книги
-        with open(file_path1, 'r', encoding='utf-8') as file:
-            book_text1 = file.read()
-        chapters1 = split_book_into_parts(book_text1)
+       # Проверка и загрузка текста из PDF или TXT
+def load_book_text(file_path):
+    if file_path.lower().endswith(".pdf"):
+        return extract_text_from_pdf(file_path)  # Используем функцию для PDF
+    else:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            return file.read()  # Читаем TXT
 
-        # Чтение и разбиение второй книги
-        with open(file_path2, 'r', encoding='utf-8') as file:
-            book_text2 = file.read()
+        # Загружаем текст из файлов
+        book_text1 = load_book_text(file_path1)
+        book_text2 = load_book_text(file_path2)
+
+        # Разбиваем книги на главы
+        chapters1 = split_book_into_parts(book_text1)
         chapters2 = split_book_into_parts(book_text2)
 
         # Отправка начального сообщения
@@ -108,7 +122,7 @@ async def process_books(file_path1, file_path2, bot_token, channel_id):
         await send_message_to_telegram_channel(start_message, bot_token, channel_id)
 
         # Расписание отправки сообщений
-        schedule = [(11,00), (17, 00), (18,00)]  # (час, минута)
+        schedule = [(11,00), (13, 00)]  # (час, минута)
         schedule_index = 0
 
         # Чередование между книгами
@@ -142,8 +156,8 @@ async def process_books(file_path1, file_path2, bot_token, channel_id):
 
 
 # Пример использовани
-file_path1 = "745514.txt"
-file_path2 = "book-bot.txt"
+file_path1 = "emerald.pdf"
+file_path2 = "berkley.pdf"
 bot_token = '6786746440:AAF2yGdkXhWdnPRzkYZDz1-gweckuTUp-ss'
 channel_id = '@rheniumbooks'
 
