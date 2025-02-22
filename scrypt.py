@@ -69,9 +69,9 @@ async def send_message_to_telegram_channel(text, bot_token, channel_id):
 # Функция для генерации краткого содержания
 def generate_summary(text):
     try:
-        openai.api_key = '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'
+        openai.api_key = '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'
         response = openai.ChatCompletion.create(
-            model="gpt-4-1106-preview",
+            model="gpt-4o",
             messages=[
                 {"role": "system", "content": "Вы публицист, экономист, правый либертарианец, капиталист, который читает книги и пишет блог в повествовательном стиле. Ваша задача - проанализировать и пересказать в доступной манере, предоставленный текст из книг по экономике. Начиная, в первой фразе упоминайте номер главы (номер всегда после слова ГЛАВА), ее название и упоминайте автора и название книги - они указаны в самом начале файла (Автор:, Книга:). Уложитесь в 300 слов. Пишите грамотно на украинском языке, в сдержанном публицистическом стиле, не используйте сложных словесных конструкций."},
                 {"role": "user", "content": text}
