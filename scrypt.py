@@ -108,13 +108,20 @@ async def process_books(file_path1, file_path2, bot_token, channel_id):
         last_processed_chapter1 = load_last_processed_chapter("last_processed_chapter1.txt")
         last_processed_chapter2 = load_last_processed_chapter("last_processed_chapter2.txt")
         
-       # Проверка и загрузка текста из PDF или TXT
+      # Проверка и загрузка текста из PDF или TXT
 def load_book_text(file_path):
     if file_path.lower().endswith(".pdf"):
         return extract_text_from_pdf(file_path)  # Используем функцию для PDF
     else:
         with open(file_path, 'r', encoding='utf-8') as file:
             return file.read()  # Читаем TXT
+
+
+async def process_books(file_path1, file_path2, bot_token, channel_id):
+    try:
+        # Загрузка последней обработанной главы
+        last_processed_chapter1 = load_last_processed_chapter("last_processed_chapter1.txt")
+        last_processed_chapter2 = load_last_processed_chapter("last_processed_chapter2.txt")
 
         # Загружаем текст из файлов
         book_text1 = load_book_text(file_path1)
@@ -129,7 +136,7 @@ def load_book_text(file_path):
         await send_message_to_telegram_channel(start_message, bot_token, channel_id)
 
         # Расписание отправки сообщений
-        schedule = [(11,00), (13, 00)]  # (час, минута)
+        schedule = [(11, 00), (13, 00)]  # (час, минута)
         schedule_index = 0
 
         # Чередование между книгами
